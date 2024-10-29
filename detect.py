@@ -51,17 +51,14 @@ from utils.torch_utils import select_device, smart_inference_mode
 
 from stereo import stereoconfig
 from stereo.dianyuntu_yolo import preprocess, undistortion, getRectifyTransform, draw_line, rectifyImage, \
-    stereoMatchSGBM
+    stereoMatchCensus
 
 
-
-
-#### 多线程部分
 import threading
 import socket
 
 tcp_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# 需连接的客户端ip和端口
+
 server_ip = "192.168.137.1"
 server_port = 1024
 tcp_client.connect((server_ip, server_port))
@@ -213,7 +210,7 @@ def run(
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         annotator.box_label(xyxy, label, color=colors(c, True))
 
-                    #####################定位部分#########################
+                    #####################location part#########################
 
 
                     x = (xyxy[0] + xyxy[2]) / 2
@@ -231,20 +228,6 @@ def run(
 
 
                         ################depth compute######################
-                        #
-                        # height, width = iml.shape[0:2]
-                        # config = stereoconfig.stereoCamera()
-                        # map1x, map1y, map2x, map2y, Q = getRectifyTransform(720, 1280, config)
-                        # iml_rectified, imr_rectified = rectifyImage(iml, imr, map1x, map1y, map2x, map2y)
-                        #
-                        # line = draw_line(iml_rectified, imr_rectified)
-                        # iml = undistortion(iml, config.cam_matrix_left, config.distortion_l)
-                        # imr = undistortion(imr, config.cam_matrix_right, config.distortion_r)
-                        # iml_, imr_ = preprocess(iml, imr)
-                        # iml_rectified_l, imr_rectified_r = rectifyImage(iml_, imr_, map1x, map1y, map2x, map2y)
-                        #
-                        # disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, False)
-
                         #
                         config = stereoconfig.stereoCamera()
                         map1x, map1y, map2x, map2y, Q = getRectifyTransform(376, 672, config)
@@ -267,7 +250,6 @@ def run(
 
                         disparity_sgbm = stereo_sgbm.compute(gray_left, gray_right)
 
-                        # 归一化
                         disparity_sgbm_norm = cv2.normalize(disparity_sgbm, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
 
 
@@ -276,18 +258,17 @@ def run(
                         points_3d = points_3d * 16
 
 
-
                         ############################out put################################
                         text_cxy = "*"
                         cv2.putText(im0, text_cxy, (int(x), int(y)), cv2.FONT_ITALIC, 1.2, (0, 0, 255), 3)
 
-                        print('点 (%d, %d) 的三维坐标 (x:%.1fcm, y:%.1fcm, z:%.1fcm)' % (
+                        print('point (%d, %d) 3D coordinate (x:%.1fcm, y:%.1fcm, z:%.1fcm)' % (
                         int(x), int(y), points_3d[int(y+10), int(x), 0] / 10, points_3d[int(y), int(x), 1] / 10,
                         points_3d[int(y), int(x), 2] / 10))
 
                         dis = ((points_3d[int(y), int(x), 0] ** 2 + points_3d[int(y), int(x), 1] ** 2 + points_3d[
                             int(y), int(x), 2] ** 2) ** 0.5) / 10
-                        print('点 (%d, %d) 的 %s 距离左摄像头的相对距离为 %0.1f cm' % (x, y, label, dis))
+                        print(' The relative distance of the point (%d, %d) %s from the left camera is %0.1f cm' % (x, y, label, dis))
 
                         text_x = "x:%.1fcm" % (points_3d[int(y), int(x), 0] / 10)
                         text_y = "y:%.1fcm" % (points_3d[int(y), int(x), 1] / 10)
@@ -315,14 +296,14 @@ def run(
 
                     ####################################################
 
-                        ###发送坐标部分开始#############
+                        ################
                         global stopmove
                         if stopmove == 1:
                             tcp_client.send("Tomatoes here, stop moving   ".encode("utf-8"))
 
                             if x != 0 and y != 0:
                                 # # points_3d = points_3d.cpu()
-                                # location3d = points_3d[y][x]  # y和x
+                                # location3d = points_3d[y][x]  
                                 # Tomatox = "X:" + str(round(location3d[0], 2))
                                 # Tomatoy = "Y:" + str(round(location3d[1], 2))
                                 # Tomatoz = "Z:" + str(round(location3d[2], 2))

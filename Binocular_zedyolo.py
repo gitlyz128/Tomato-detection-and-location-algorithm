@@ -16,7 +16,7 @@ from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 from stereo.dianyuntu_yolo import preprocess, undistortion, getRectifyTransform, draw_line, rectifyImage, \
-    stereoMatchSGBM
+    stereoMatchCensus
 from stereo import stereoconfig
 num = 200
 
@@ -144,17 +144,17 @@ def detect(save_img=False):
                             iml_, imr_ = preprocess(iml, imr)
                             iml_rectified_l, imr_rectified_r = rectifyImage(iml_, imr_, map1x, map1y, map2x, map2y)
 
-                            disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
+                            disp, _ = stereoMatchCensus(iml_rectified_l, imr_rectified_r, True)
                             points_3d = cv2.reprojectImageTo3D(disp, Q)
 
 
                             text_cxy = "*"
                             cv2.putText(im0, text_cxy, (int(x), int(y)), cv2.FONT_ITALIC, 1.2, (0, 0, 255), 3)
 
-                            print('点 (%d, %d) 的三维坐标 (x:%.1fcm, y:%.1fcm, z:%.1fcm)' % (int(x), int(y),points_3d[int(y), int(x), 0] / 10,points_3d[int(y), int(x), 1] / 10,points_3d[int(y), int(x), 2] / 10))
+                            print('The 3D coordinates of the point (%d, %d) (x:%.1fcm, y:%.1fcm, z:%.1fcm)' % (int(x), int(y),points_3d[int(y), int(x), 0] / 10,points_3d[int(y), int(x), 1] / 10,points_3d[int(y), int(x), 2] / 10))
 
                             dis = ((points_3d[int(y), int(x), 0] ** 2 + points_3d[int(y), int(x), 1] ** 2 + points_3d[int(y), int(x), 2] ** 2) ** 0.5) / 10
-                            print('点 (%d, %d) 的 %s 距离左摄像头的相对距离为 %0.1f cm' % (x, y, label, dis))
+                            print('The relative distance of %s of point (%d, %d) from the left camera is %0.1f cm' % (x, y, label, dis))
 
                             text_x = "x:%.1fcm" % (points_3d[int(y), int(x), 0] / 10)
                             text_y = "y:%.1fcm" % (points_3d[int(y), int(x), 1] / 10)

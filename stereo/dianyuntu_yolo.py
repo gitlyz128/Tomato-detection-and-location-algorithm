@@ -78,8 +78,8 @@ def draw_line(image1, image2):
 
 
 # 视差计算
-def stereoMatchSGBM(left_image, right_image, down_scale=False):
-    # SGBM匹配参数设置
+def stereoMatchCensus(left_image, right_image, down_scale=False):
+    # Census匹配参数设置
     if left_image.ndim == 2:
         img_channels = 1
     else:
@@ -98,7 +98,7 @@ def stereoMatchSGBM(left_image, right_image, down_scale=False):
               'mode': cv2.STEREO_SGBM_MODE_SGBM_3WAY
               }
 
-    # 构建SGBM对象
+    # 构建Census对象
     left_matcher = cv2.StereoSGBM_create(**paraml)
     paramr = paraml
     paramr['minDisparity'] = -paraml['numDisparities']
@@ -122,7 +122,7 @@ def stereoMatchSGBM(left_image, right_image, down_scale=False):
         disparity_left = factor * disparity_left
         disparity_right = factor * disparity_right
 
-    # 真实视差（因为SGBM算法得到的视差是×16的）
+    # 真实视差（因为Census算法得到的视差是×16的）
     trueDisp_left = disparity_left.astype(np.float32) / 16.
     trueDisp_right = disparity_right.astype(np.float32) / 16.
 
@@ -234,7 +234,7 @@ if __name__ == '__main__':
 
     iml_rectified_l, imr_rectified_r = rectifyImage(iml_, imr_, map1x, map1y, map2x, map2y)
 
-    disp, _ = stereoMatchSGBM(iml_rectified_l, imr_rectified_r, True)
+    disp, _ = stereoMatchCensus(iml_rectified_l, imr_rectified_r, True)
     # cv2.imwrite('./yolo/%s视差%d.png' %(string,i), disp)
     cv2.imwrite('./yolo/%s视差%d.png', disp)
 

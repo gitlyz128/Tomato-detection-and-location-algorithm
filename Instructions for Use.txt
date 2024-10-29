@@ -1,0 +1,6 @@
+The programming language is Python.
+1. The "readme.md" file in the folder is used to configure the environment
+2. The positioning code is located in the "stereo" folder, which is related to the paper. Program "stereoconfig.py" is the binocular camera internal parameters we had calibrated. Program "dianyuntu_yolo.py" contains the census algorithm we had optimized. Program in main folder "Binocular_zedyolo.py" is the main program of the whole project, which calls the APIs from "dianyuntu_yolo.py" to execute the whole mission of detection and location of tomatoes.
+3. The identification code is "detect.py"
+4. The standard weight file is "best.pt"
+5. the weight file is "best192320half.engine"
